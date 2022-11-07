@@ -32,12 +32,13 @@ class ApiServices {
   Uri getUri(String baseURL, String endPoint, bool isParameterEncoding,
       Map<String, dynamic>? parameters) {
     if (isParameterEncoding && parameters != null) {
-      if (baseURL.substring(0, 4) == "https") {
+      final parametersAsString = parameters.toMapStringString();
+      if (baseURL.substring(0, 5) == "https") {
         final urlWithoutHttps = baseURL.replaceFirst("https://", "");
-        return Uri.https(urlWithoutHttps, endPoint, parameters);
+        return Uri.https(urlWithoutHttps, endPoint, parametersAsString);
       }
-      final urlWithoutHttp = baseURL.replaceFirst("https://", "");
-      return Uri.http(urlWithoutHttp, endPoint, parameters);
+      final urlWithoutHttp = baseURL.replaceFirst("http://", "");
+      return Uri.http(urlWithoutHttp, endPoint, parametersAsString);
     } else {
       return Uri.parse(baseURL + endPoint);
     }
