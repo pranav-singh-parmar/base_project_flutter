@@ -5,16 +5,28 @@ import '../../constants_and_extenstions/singleton.dart';
 import 'dart:developer' show inspect;
 import 'package:flutter/material.dart' show debugPrint;
 import '../../constants_and_extenstions/app_constants.dart'
-    show ApiEndPoints, HttpMehod, ParameterEncoding;
+    show ApiEndPoints, ApiStatus, HttpMehod, ParameterEncoding;
 import '../models/characters_response.dart';
 
 class CharactersStreamController implements StreamBase {
-  final StreamController<Character> _getCharactersSC =
-      StreamController<Character>();
+  List<Character> characters = [];
+  int _total = 0;
+  int _currentLength = 0;
 
-  Stream<Character> get getCharactersStream => _getCharactersSC.stream;
+  bool get fetchedAllData => _total <= _currentLength;
+    
+  void paginateWithIndex(int index) {
+      if (getCharactersStream.first != ApiStatus.isBeingHit && index == _currentLength - 1 && !fetchedAllData) {
+          getCharacters(clearList: false);
+      }
+  }
 
-  void getCharacters() async {
+  final StreamController<ApiStatus> _getCharactersSC =
+      StreamController<ApiStatus>();
+
+  Stream<ApiStatus> get getCharactersStream => _getCharactersSC.stream;
+
+  Future<void> getCharacters({bool clearList = false}) async {
     final json = await Singleton.instance.apiServices.hitApi(
         httpMethod: HttpMehod.get,
         endPoint: ApiEndPoints.characters,
@@ -26,8 +38,18 @@ class CharactersStreamController implements StreamBase {
           getCharacters();
         }));
 
+    if (clearList) {
+      characters.clear();
+    }
+
     if (json != null) {
-      //_getCharactersSC.sink.add(true);
+      _total = 30;
+      final newCharacters = charactersFromDynamic(json);
+      characters.addAll(newCharacters);
+      _currentLength = characters.length;
+      _getCharactersSC.sink.add(ApiStatus.apiHit);
+    } else {
+      _getCharactersSC.sink.add(ApiStatus.apiHitWithError);
     }
   }
 

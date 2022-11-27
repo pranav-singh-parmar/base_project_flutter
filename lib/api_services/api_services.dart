@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:base_project_flutter/constants_and_extenstions/app_strings.dart';
+
 import 'models/models_used_to_send_data/ImageModel.dart';
 import '../constants_and_extenstions/singleton.dart';
 import 'package:http/http.dart' as http;
 import '../constants_and_extenstions/app_constants.dart'
-    show AppUrls, HttpMehod, ParameterEncoding, SharedPrefsKeys, AppStrings;
+    show AppUrls, HttpMehod, ParameterEncoding, SharedPrefsKeys;
 import '../constants_and_extenstions/extensions.dart';
 
 class ApiServices {

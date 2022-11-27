@@ -12,6 +12,8 @@ enum JsonDecoderEnum { none, razorPayTokenReponse }
 
 enum JsonStructEnum { onlyModel, onlyJson, both }
 
+enum ApiStatus { notHitOnce, isBeingHit, apiHit, apiHitWithError }
+
 class AppDomain {
   static const bool isHTTPS = true;
   static const String baseURL = "https://www.breakingbadapi.com";
@@ -32,8 +34,4 @@ class AppColors {}
 class SharedPrefsKeys {
   static const fcmToken = "fcmToken";
   static const authToken = "authToken";
-}
-
-class AppStrings {
-  static const internetNotConnected = "Internet not connected";
 }

@@ -4,6 +4,10 @@ List<Character> charactersFromJson(String str) =>
     List<Character>.from(
         json.decode(str).map((x) => Character.fromJson(x)));
 
+List<Character> charactersFromDynamic(dynamic map) =>
+    List<Character>.from(
+        map.map((x) => Character.fromJson(x)));
+
 String charactersToJson(List<Character> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
