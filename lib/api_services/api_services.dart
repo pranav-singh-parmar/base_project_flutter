@@ -124,7 +124,7 @@ class ApiServices {
           }
       }
     } else {
-      Singleton.instance.generalFunctions.showToast(AppStrings.internetNotConnected);
+      //Singleton.instance.generalFunctions.showToast(interetNotConnected);
       // Singleton.instance.generalFunctions.showInternetNotConnectedDialog(context, () { if (whenInternotNotConnected != null) {
       //       whenInternotNotConnected();
       //       subcription?.cancel();
