@@ -1,8 +1,9 @@
-enum HttpMehod { get, post, put, delete, patch }
+enum HttpMehod { get, post, put, delete }
 
 enum ParameterEncoding {
   none,
   queryParameters,
+  formURLEncoded,
   jsonBody,
   // formData,
   // imageUpload

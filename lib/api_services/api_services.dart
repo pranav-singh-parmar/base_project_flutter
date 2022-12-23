@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:base_project_flutter/constants_and_extenstions/app_strings.dart';
 
 import 'models/models_used_to_send_data/ImageModel.dart';
 import '../constants_and_extenstions/singleton.dart';
@@ -13,7 +12,7 @@ import '../constants_and_extenstions/extensions.dart';
 class ApiServices {
   StreamSubscription? subcription;
 
-  Map<String, String> getHeaders(bool isAuthApi) {
+  Map<String, String> _getHeaders(bool isAuthApi) {
     final Map<String, String> headers = {"Content-Type": 'application/json'};
     // if using third party api's then no need to send token in it
     if (isAuthApi) {
@@ -22,13 +21,6 @@ class ApiServices {
     }
 
     return headers;
-  }
-
-  String? getJsonBody(Map<String, String>? parameters) {
-    if (parameters != null) {
-      return jsonEncode(parameters);
-    }
-    return null;
   }
 
   Uri getUri(String baseURL, String endPoint, bool isParameterEncoding,
@@ -44,6 +36,26 @@ class ApiServices {
     } else {
       return Uri.parse(baseURL + endPoint);
     }
+  }
+
+  Future<http.Response> _uploadFiles(
+      String httpMethod,
+      Uri uri,
+      Map<String, String> headers,
+      Map<String, dynamic>? parameters,
+      List<ImageModel> imageModel) async {
+    final request = http.MultipartRequest(httpMethod, uri);
+    if (parameters != null) {
+      request.fields.addAll(parameters.toMapStringString());
+    }
+    request.headers.addAll(headers);
+    for (final imageModel in imageModel) {
+      request.files.add(http.MultipartFile.fromBytes(imageModel.paramName ?? "",
+          File(imageModel.image?.path ?? "").readAsBytesSync(),
+          filename: imageModel.paramName ?? ""));
+    }
+    http.StreamedResponse streamResponse = await request.send();
+    return await http.Response.fromStream(streamResponse);
   }
 
   dynamic hitApi(
@@ -64,13 +76,7 @@ class ApiServices {
 
       final Uri uri = getUri(baseURL, endPoint, isQueryParameters, parameters);
 
-      late final String? jsonBody;
-
-      if (!isQueryParameters) {
-        jsonBody = jsonEncode(parameters);
-      }
-
-      final Map<String, String> headers = getHeaders(isAuthApi);
+      final Map<String, String> headers = _getHeaders(isAuthApi);
 
       "httpMethod --> $httpMethod".log();
       "uri --> $uri".log();
@@ -78,38 +84,51 @@ class ApiServices {
       "parameterEncoding --> $parameterEncoding".log();
       "parameters --> $parameters".log();
 
-      late final http.Response response;
+      //https://pub.dev/documentation/http/latest/http/post.html
+      late final dynamic body;
+      switch (parameterEncoding) {
+        case ParameterEncoding.jsonBody:
+          body = jsonEncode(parameters);
+          break;
+        case ParameterEncoding.formURLEncoded:
+          //If body is a Map, it's encoded as form fields using encoding.
+          //The content-type of the request will be set to "application/x-www-form-urlencoded";
+          //this cannot be overridden.
+          body = parameters;
+          break;
+        default:
+          body = null;
+          break;
+      }
+
+      final http.Response response;
       switch (httpMethod) {
         case HttpMehod.get:
           response = await http.get(uri, headers: headers);
           break;
         case HttpMehod.post:
           if (imageModel.isEmpty) {
-            response = await http.post(uri, headers: headers, body: jsonBody);
+            response = await http.post(uri, headers: headers, body: body);
           } else {
-            final request = http.MultipartRequest("POST", uri);
-            if (parameters != null) {
-              request.fields.addAll(parameters.toMapStringString());
-            }
-            request.headers.addAll(headers);
-            for (final imageModel in imageModel) {
-              request.files.add(http.MultipartFile.fromBytes(
-                  imageModel.paramName ?? "",
-                  File(imageModel.image?.path ?? "").readAsBytesSync(),
-                  filename: imageModel.paramName ?? ""));
-            }
-            http.StreamedResponse streamResponse = await request.send();
-            response = await http.Response.fromStream(streamResponse);
+            response = await _uploadFiles(
+                "POST", uri, headers, parameters, imageModel);
           }
           break;
         case HttpMehod.put:
-          response = await http.put(uri, headers: headers, body: jsonBody);
+          if (imageModel.isEmpty) {
+            response = await http.put(uri, headers: headers, body: body);
+          } else {
+            response =
+                await _uploadFiles("PUT", uri, headers, parameters, imageModel);
+          }
           break;
         case HttpMehod.delete:
-          response = await http.delete(uri, headers: headers, body: jsonBody);
-          break;
-        case HttpMehod.patch:
-          response = await http.patch(uri, headers: headers, body: jsonBody);
+          if (imageModel.isEmpty) {
+            response = await http.delete(uri, headers: headers, body: body);
+          } else {
+            response = await _uploadFiles(
+                "DELETE", uri, headers, parameters, imageModel);
+          }
           break;
       }
 
