@@ -2,10 +2,9 @@ enum HttpMehod { get, post, put, delete }
 
 enum ParameterEncoding {
   none,
-  queryParameters,
   formURLEncoded,
   jsonBody,
-  // formData,
+  formData,
   // imageUpload
 }
 
@@ -17,17 +16,17 @@ enum ApiStatus { notHitOnce, isBeingHit, apiHit, apiHitWithError }
 
 class AppDomain {
   static const bool isHTTPS = true;
-  static const String baseURL = "https://www.breakingbadapi.com";
+  static const String baseURL = "https://anime-db.p.rapidapi.com";
 }
 
 class AppUrls {
   static const String apiBaseURL = AppDomain.baseURL;
-  static const String apiMidPoint = "/api/";
+  static const String apiMidPoint = "";
   static const String privacyPolicy = "${AppDomain.baseURL}/privacypolicy";
 }
 
 class ApiEndPoints {
-  static const characters = "${AppUrls.apiMidPoint}characters";
+  static const anime = "${AppUrls.apiMidPoint}anime";
 }
 
 class AppColors {}

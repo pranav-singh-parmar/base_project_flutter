@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+
 import 'models/models_used_to_send_data/ImageModel.dart';
 import '../constants_and_extenstions/singleton.dart';
 import 'package:http/http.dart' as http;
@@ -12,21 +14,25 @@ import '../constants_and_extenstions/extensions.dart';
 class ApiServices {
   StreamSubscription? subcription;
 
-  Map<String, String> _getHeaders(bool isAuthApi) {
+  Map<String, String> _getHeaders(
+      bool isAuthApi, Map<String, String>? extraHeaders) {
     final Map<String, String> headers = {"Content-Type": 'application/json'};
     // if using third party api's then no need to send token in it
     if (isAuthApi) {
       headers["Authorization"] =
           Singleton.instance.sharedPrefs.getString(SharedPrefsKeys.authToken);
     }
+    if (extraHeaders != null) headers.addAll(extraHeaders);
 
     return headers;
   }
 
-  Uri getUri(String baseURL, String endPoint, bool isParameterEncoding,
-      Map<String, dynamic>? parameters) {
-    if (isParameterEncoding && parameters != null) {
-      final parametersAsString = parameters.toMapStringString();
+  Uri getUri(
+      {String baseURL = AppUrls.apiBaseURL,
+      String endPoint = "",
+      Map<String, dynamic>? queryparameters}) {
+    if (queryparameters != null) {
+      final parametersAsString = queryparameters.toMapStringString();
       if (baseURL.substring(0, 5) == "https") {
         final urlWithoutHttps = baseURL.replaceFirst("https://", "");
         return Uri.https(urlWithoutHttps, endPoint, parametersAsString);
@@ -58,11 +64,9 @@ class ApiServices {
     return await http.Response.fromStream(streamResponse);
   }
 
-  dynamic hitApi(
-      {HttpMehod httpMethod = HttpMehod.get,
-      String baseURL = AppUrls.apiBaseURL,
-      String endPoint = "",
-      bool isAuthApi = false,
+  dynamic hitApi(BuildContext context, HttpMehod httpMethod, Uri uri,
+      {bool isAuthApi = false,
+      Map<String, String>? extraHeaders,
       ParameterEncoding parameterEncoding = ParameterEncoding.none,
       Map<String, dynamic>? parameters,
       List<ImageModel> imageModel = const [],
@@ -71,15 +75,12 @@ class ApiServices {
       if (subcription != null) {
         subcription?.cancel();
       }
-      final bool isQueryParameters =
-          parameterEncoding == ParameterEncoding.queryParameters;
 
-      final Uri uri = getUri(baseURL, endPoint, isQueryParameters, parameters);
-
-      final Map<String, String> headers = _getHeaders(isAuthApi);
+      final Map<String, String> headers = _getHeaders(isAuthApi, extraHeaders);
 
       "httpMethod --> $httpMethod".log();
       "uri --> $uri".log();
+      "queryParameters --> ${uri.queryParameters}".log();
       "headers --> $headers".log();
       "parameterEncoding --> $parameterEncoding".log();
       "parameters --> $parameters".log();

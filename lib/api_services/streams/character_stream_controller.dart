@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'stream_base.dart';
 import '../../constants_and_extenstions/singleton.dart';
-import 'dart:developer' show inspect;
-import 'package:flutter/material.dart' show debugPrint;
+import 'package:flutter/material.dart' show BuildContext;
 import '../../constants_and_extenstions/app_constants.dart'
-    show ApiEndPoints, ApiStatus, HttpMehod, ParameterEncoding;
+    show ApiEndPoints, ApiStatus, HttpMehod;
 import '../models/characters_response.dart';
 
 class CharactersStreamController implements StreamBase {
@@ -14,11 +12,13 @@ class CharactersStreamController implements StreamBase {
   int _currentLength = 0;
 
   bool get fetchedAllData => _total <= _currentLength;
-    
-  void paginateWithIndex(int index) {
-      if (getCharactersStream.first != ApiStatus.isBeingHit && index == _currentLength - 1 && !fetchedAllData) {
-          getCharacters(clearList: false);
-      }
+
+  void paginateWithIndex(BuildContext context, int index) {
+    if (getCharactersStream.first != ApiStatus.isBeingHit &&
+        index == _currentLength - 1 &&
+        !fetchedAllData) {
+      getCharacters(context, clearList: false);
+    }
   }
 
   final StreamController<ApiStatus> _getCharactersSC =
@@ -26,17 +26,14 @@ class CharactersStreamController implements StreamBase {
 
   Stream<ApiStatus> get getCharactersStream => _getCharactersSC.stream;
 
-  Future<void> getCharacters({bool clearList = false}) async {
-    final json = await Singleton.instance.apiServices.hitApi(
-        httpMethod: HttpMehod.get,
-        endPoint: ApiEndPoints.characters,
-        parameterEncoding: ParameterEncoding.queryParameters,
-        parameters: {
-          "limit": 10,
-        },
-        whenInternotNotConnected: (() {
-          getCharacters();
-        }));
+  Future<void> getCharacters(BuildContext context,
+      {bool clearList = false}) async {
+    final uri = Singleton.instance.apiServices
+        .getUri(endPoint: ApiEndPoints.anime, queryparameters: {"limit": 10});
+    final json = await Singleton.instance.apiServices
+        .hitApi(context, HttpMehod.get, uri, whenInternotNotConnected: (() {
+      getCharacters(context, clearList: clearList);
+    }));
 
     if (clearList) {
       characters.clear();

@@ -1,3 +1,4 @@
+import 'package:base_project_flutter/screens/animes_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'characters_list_screen.dart';
@@ -32,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
     timer.cancel();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const CharactersListScree()),
+      MaterialPageRoute(builder: (context) => const AnimesListScreen()),
     );
   }
 }

@@ -1,23 +1,22 @@
-import 'package:base_project_flutter/api_services/models/characters_response.dart';
-import 'package:base_project_flutter/constants_and_extenstions/app_constants.dart';
-import 'package:base_project_flutter/screens/widgets/custom_network_image.dart';
+import '../constants_and_extenstions/app_constants.dart';
+import 'widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
 import '../api_services/streams/character_stream_controller.dart';
 
-class CharactersListScree extends StatefulWidget {
-  const CharactersListScree({Key? key}) : super(key: key);
+class CharactersListScreen extends StatefulWidget {
+  const CharactersListScreen({Key? key}) : super(key: key);
 
   @override
-  State<CharactersListScree> createState() => _CharactersListScreeState();
+  State<CharactersListScreen> createState() => _CharactersListScreenState();
 }
 
-class _CharactersListScreeState extends State<CharactersListScree> {
+class _CharactersListScreenState extends State<CharactersListScreen> {
   final CharactersStreamController _characterSC = CharactersStreamController();
 
   @override
   void initState() {
     super.initState();
-    _characterSC.getCharacters();
+    _characterSC.getCharacters(context);
   }
 
   @override
@@ -27,7 +26,7 @@ class _CharactersListScreeState extends State<CharactersListScree> {
   }
 
   Future<void> _onRefresh() async {
-    await _characterSC.getCharacters();
+    await _characterSC.getCharacters(context, clearList: true);
   }
 
   @override
@@ -40,7 +39,7 @@ class _CharactersListScreeState extends State<CharactersListScree> {
             stream: _characterSC.getCharactersStream,
             builder: (context, snapshot) {
               final characters = _characterSC.characters;
-              if (snapshot.data == ApiStatus.isBeingHit && characters.isEmpty)  {
+              if (snapshot.data == ApiStatus.isBeingHit && characters.isEmpty) {
                 return const CircularProgressIndicator();
               } else {
                 if (characters.isEmpty) {
