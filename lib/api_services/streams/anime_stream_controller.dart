@@ -8,14 +8,16 @@ import '../../constants_and_extenstions/app_constants.dart'
     show ApiEndPoints, ApiStatus, HttpMehod;
 
 class AnimesStreamController implements StreamBase {
+  ApiStatus _animeAS = ApiStatus.notHitOnce;
   List<AnimeModel?> animes = [];
-  int _total = 0;
+  int _totalPage = 0;
   int _currentLength = 0;
+  int _currentPage = 0;
 
-  bool get fetchedAllData => _total <= _currentLength;
+  bool get fetchedAllData => _totalPage <= _currentPage;
 
   void paginateWithIndex(BuildContext context, int index) {
-    if (getAnimesStream.first != ApiStatus.isBeingHit &&
+    if (_animeAS != ApiStatus.isBeingHit &&
         index == _currentLength - 1 &&
         !fetchedAllData) {
       getAnimes(context, clearList: false);
@@ -27,10 +29,25 @@ class AnimesStreamController implements StreamBase {
 
   Stream<ApiStatus> get getAnimesStream => _getAnimesSC.stream;
 
+  void _updateAnimeAS(ApiStatus apiStatus) {
+    _animeAS = apiStatus;
+    _getAnimesSC.sink.add(_animeAS);
+  }
+
   Future<void> getAnimes(BuildContext context, {bool clearList = false}) async {
+    if (clearList) {
+      _currentPage = 0;
+    }
+    _currentPage++;
+
+    _updateAnimeAS(ApiStatus.isBeingHit);
     final uri = Singleton.instance.apiServices.getUri(
         endPoint: ApiEndPoints.anime,
-        queryparameters: {"page": "1", "size": "10"});
+        queryparameters: {
+          "page": _currentPage,
+          "size": "10",
+          "search": "Dragon Ball Z"
+        });
     final json = await Singleton.instance.apiServices
         .hitApi(context, HttpMehod.get, uri, extraHeaders: {
       "X-RapidAPI-Key": "2b975442demsh14dd8bb5a692b60p17c702jsnc458dbd221ae",
@@ -44,13 +61,13 @@ class AnimesStreamController implements StreamBase {
     }
 
     if (json != null) {
-      _total = 30;
-      final newAnimes = AnimeListResponse.fromJson(json);
-      animes.addAll(newAnimes.data ?? []);
+      final animeResponse = AnimeListResponse.fromJson(json);
+      _totalPage = animeResponse.meta?.totalPage ?? 0;
+      animes.addAll(animeResponse.data ?? []);
       _currentLength = animes.length;
-      _getAnimesSC.sink.add(ApiStatus.apiHit);
+      _updateAnimeAS(ApiStatus.apiHit);
     } else {
-      _getAnimesSC.sink.add(ApiStatus.apiHitWithError);
+      _updateAnimeAS(ApiStatus.apiHitWithError);
     }
   }
 

@@ -2,6 +2,7 @@ import '../api_services/streams/anime_stream_controller.dart';
 import '../constants_and_extenstions/app_constants.dart';
 import 'widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
+import '../constants_and_extenstions/extensions.dart';
 
 class AnimesListScreen extends StatefulWidget {
   const AnimesListScreen({Key? key}) : super(key: key);
@@ -11,17 +12,20 @@ class AnimesListScreen extends StatefulWidget {
 }
 
 class _AnimesListScreenState extends State<AnimesListScreen> {
+  final ScrollController _scrollController = ScrollController();
   final AnimesStreamController _animesSC = AnimesStreamController();
 
   @override
   void initState() {
     super.initState();
     _animesSC.getAnimes(context);
+    _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
     _animesSC.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -38,15 +42,16 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
         child: StreamBuilder<ApiStatus>(
             stream: _animesSC.getAnimesStream,
             builder: (context, snapshot) {
-              final characters = _animesSC.animes;
-              if (snapshot.data == ApiStatus.isBeingHit && characters.isEmpty) {
+              final animes = _animesSC.animes;
+              if (snapshot.data == ApiStatus.isBeingHit && animes.isEmpty) {
                 return const CircularProgressIndicator();
               } else {
-                if (characters.isEmpty) {
+                if (animes.isEmpty) {
                   return const Text("No data Available");
                 }
                 return ListView.builder(
                     shrinkWrap: true,
+                    controller: _scrollController,
                     physics: const BouncingScrollPhysics(),
                     itemCount: _animesSC.fetchedAllData
                         ? _animesSC.animes.length
@@ -82,5 +87,14 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
         ]))
       ],
     );
+  }
+
+  void _scrollListener() {
+    //final heightToStartPagiation = (_scrollController.position.maxScrollExtent - MediaQuery.of(context).size.height * .1);
+    //if (_scrollController.position.pixels >= heightToStartPagiation) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _animesSC.paginateWithIndex(context, _animesSC.animes.length - 1);
+    }
   }
 }
