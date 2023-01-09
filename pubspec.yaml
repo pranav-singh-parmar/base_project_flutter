@@ -102,3 +102,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+  fonts:
+    - family: Bitter
+      fonts:
+        - asset: assets/fonts/Bitter-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Bitter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Bitter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Bitter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Bitter-Bold.ttf
+          weight: 700

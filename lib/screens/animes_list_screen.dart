@@ -1,3 +1,6 @@
+import 'package:base_project_flutter/constants_and_extenstions/app_strings.dart';
+
+import 'widgets/custom_app_bar.dart';
 import '../api_services/streams/anime_stream_controller.dart';
 import '../constants_and_extenstions/app_constants.dart';
 import 'widgets/custom_network_image.dart';
@@ -36,7 +39,7 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: const CustomAppBar(title: AppStrings.anime),
       body: RefreshIndicator(
         onRefresh: _onRefresh,
         child: StreamBuilder<ApiStatus>(
@@ -73,19 +76,39 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
     //final character =
     final screenDimensions = MediaQuery.of(context).size;
     final anime = _animesSC.animes[index];
-    return Row(
-      children: [
-        CustomNetworkImage(
-          imageURL: anime?.image,
-          height: screenDimensions.width * 0.3,
-          width: screenDimensions.width * 0.3,
-        ),
-        Expanded(
-            child: Column(children: [
-          Text(anime?.title ?? ""),
-          Text(anime?.id ?? ""),
-        ]))
-      ],
+    const double padding = 8;
+    return Padding(
+      padding: index == 0
+          ? const EdgeInsets.only(
+              top: padding * 2, left: padding, right: padding, bottom: padding)
+          : const EdgeInsets.all(padding),
+      child: Row(
+        children: [
+          CustomNetworkImage(
+            isCircle: true,
+            imageURL: anime?.image,
+            height: screenDimensions.width * 0.3,
+            width: screenDimensions.width * 0.3,
+          ),
+          Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.only(left: padding),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          anime?.title ?? "",
+                          style: const TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          anime?.type ?? "",
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w500),
+                        ),
+                      ])))
+        ],
+      ),
     );
   }
 
