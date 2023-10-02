@@ -38,7 +38,6 @@ class AnimesStreamController implements StreamBase {
     if (clearList) {
       _currentPage = 0;
     }
-    _currentPage++;
 
     _updateAnimeAS(ApiStatus.isBeingHit);
     final uri = Singleton.instance.apiServices.getUri(
@@ -59,6 +58,7 @@ class AnimesStreamController implements StreamBase {
     if (clearList) {
       animes.clear();
     }
+    _currentPage++;
 
     if (json != null) {
       final animeResponse = AnimeListResponse.fromJson(json);
