@@ -12,7 +12,7 @@ class AnimesStreamController implements StreamBase {
   List<AnimeModel?> animes = [];
   int _totalPage = 0;
   int _currentLength = 0;
-  int _currentPage = 0;
+  int _currentPage = 1;
 
   bool get fetchedAllData => _totalPage <= _currentPage;
 
@@ -36,7 +36,7 @@ class AnimesStreamController implements StreamBase {
 
   Future<void> getAnimes(BuildContext context, {bool clearList = false}) async {
     if (clearList) {
-      _currentPage = 0;
+      _currentPage = 1;
     }
 
     _updateAnimeAS(ApiStatus.isBeingHit);
