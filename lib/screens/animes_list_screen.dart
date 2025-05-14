@@ -1,11 +1,11 @@
-import 'package:base_project_flutter/constants_and_extenstions/app_strings.dart';
+import '../constants_and_extenstions/app_strings.dart';
 
+import '../constants_and_extenstions/theme_controller.dart';
 import 'widgets/custom_app_bar.dart';
 import '../api_services/streams/anime_stream_controller.dart';
 import '../constants_and_extenstions/app_constants.dart';
 import 'widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
-import '../constants_and_extenstions/extensions.dart';
 
 class AnimesListScreen extends StatefulWidget {
   const AnimesListScreen({Key? key}) : super(key: key);
@@ -17,11 +17,12 @@ class AnimesListScreen extends StatefulWidget {
 class _AnimesListScreenState extends State<AnimesListScreen> {
   final ScrollController _scrollController = ScrollController();
   final AnimesStreamController _animesSC = AnimesStreamController();
+  final _themeController = ThemeController();
 
   @override
   void initState() {
     super.initState();
-    _animesSC.getAnimes(context);
+    _animesSC.getAnimes();
     _scrollController.addListener(_scrollListener);
   }
 
@@ -33,7 +34,7 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
   }
 
   Future<void> _onRefresh() async {
-    await _animesSC.getAnimes(context, clearList: true);
+    await _animesSC.getAnimes(clearList: true);
   }
 
   @override
@@ -50,7 +51,12 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
                 return const CircularProgressIndicator();
               } else {
                 if (animes.isEmpty) {
-                  return const Text("No data Available");
+                  return Text(
+                    "No data Available",
+                    style: _themeController.bitterFont(
+                      fontSize: FontSize.body,
+                    ),
+                  );
                 }
                 return ListView.builder(
                     shrinkWrap: true,
@@ -98,13 +104,17 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
                       children: [
                         Text(
                           anime?.title ?? "",
-                          style: const TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.w600),
+                          style: _themeController.bitterFont(
+                            fontSize: FontSize.body,
+                            weightEnum: FontWeightEnum.semiBold,
+                          ),
                         ),
                         Text(
                           anime?.type ?? "",
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w500),
+                          style: _themeController.bitterFont(
+                            fontSize: FontSize.caption,
+                            weightEnum: FontWeightEnum.medium,
+                          ),
                         ),
                       ])))
         ],
@@ -117,7 +127,7 @@ class _AnimesListScreenState extends State<AnimesListScreen> {
     //if (_scrollController.position.pixels >= heightToStartPagiation) {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      _animesSC.paginateWithIndex(context, _animesSC.animes.length - 1);
+      _animesSC.paginateWithIndex(_animesSC.animes.length - 1);
     }
   }
 }

@@ -1,23 +1,22 @@
 import 'dart:convert';
 
-import 'app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'extensions.dart';
+
+import 'app_constants.dart';
+import 'nonui_extensions.dart';
 
 class SharedPrefs {
+  //Shared Instance
+  SharedPrefs._sharedInstance() : super();
+  static final SharedPrefs _shared = SharedPrefs._sharedInstance();
+  factory SharedPrefs() => _shared;
+
   late SharedPreferences _sharedPrefs;
 
-  SharedPrefs() {
-    "initialise SharedPrefs".log();
-    _initialiseSharePrefs();
-  }
-
-  void _initialiseSharePrefs() async {
-    "initialise start".log();
+  Future<void> initialiseSharePrefs() async {
     // if (Platform.isAndroid) SharedPreferencesAndroid.registerWith();
     // if (Platform.isIOS) SharedPreferencesIOS.registerWith();
     _sharedPrefs = await SharedPreferences.getInstance();
-    "initialise completed".log();
   }
 
   void resetSharedPrefs() async {
@@ -26,37 +25,76 @@ class SharedPrefs {
     //setString(SharedPrefsKeys.fcmToken, fcmToken);
   }
 
-  void setBool(String inKey, bool value) async =>
-      await _sharedPrefs.setBool(inKey, value);
+  void setBool({
+    required bool value,
+    required SharedPrefsKeys inKey,
+  }) async =>
+      await _sharedPrefs.setBool(inKey.value, value);
 
-  bool getBool(String fromKey) => _sharedPrefs.getBool(fromKey) ?? false;
+  bool? getBool({
+    required SharedPrefsKeys fromKey,
+  }) =>
+      _sharedPrefs.getBool(fromKey.value);
 
-  void setInt(String inKey, int value) async =>
-      await _sharedPrefs.setInt(inKey, value);
+  void setInt({
+    required int value,
+    required SharedPrefsKeys inKey,
+  }) async =>
+      await _sharedPrefs.setInt(inKey.value, value);
 
-  int getInt(String fromKey) => _sharedPrefs.getInt(fromKey) ?? -1;
+  int? getInt({
+    required SharedPrefsKeys fromKey,
+  }) =>
+      _sharedPrefs.getInt(fromKey.value);
 
-  void getDouble(String inKey, double value) async =>
-      await _sharedPrefs.setDouble(inKey, value);
+  void setDouble({
+    required double value,
+    required SharedPrefsKeys inKey,
+  }) async =>
+      await _sharedPrefs.setDouble(inKey.value, value);
 
-  double setDouble(String fromKey) => _sharedPrefs.getDouble(fromKey) ?? -1;
+  double? getDouble({
+    required SharedPrefsKeys fromKey,
+  }) =>
+      _sharedPrefs.getDouble(fromKey.value);
 
-  void setString(String inKey, String value) async =>
-      await _sharedPrefs.setString(inKey, value);
+  void setString({
+    required String value,
+    required SharedPrefsKeys inKey,
+  }) async =>
+      await _sharedPrefs.setString(inKey.value, value);
 
-  String getString(String fromKey) =>
-      _sharedPrefs.getString(fromKey)?.trim() ?? "";
+  String? getString({
+    required SharedPrefsKeys fromKey,
+  }) =>
+      _sharedPrefs.getString(fromKey.value)?.trim();
 
-  void setJson<T>(String inKey, Map<String, dynamic> value) =>
-      setString(inKey, json.encode(value));
+  Future<bool> delete({
+    required SharedPrefsKeys fromKey,
+  }) =>
+      _sharedPrefs.remove(fromKey.value);
 
-  Map<String, dynamic> getJson(String key) {
-    try {
-      return json.decode(_sharedPrefs.getString(key)?.trim() ?? "");
-    } catch (exception) {
-      "error in getJson function --> $exception".log();
+  void setJSON({
+    required Map<String, dynamic> value,
+    required SharedPrefsKeys inKey,
+  }) async =>
+      setString(
+        value: json.encode(value),
+        inKey: inKey,
+      );
+
+  Map<String, dynamic>? getJSON({
+    required SharedPrefsKeys fromKey,
+  }) {
+    final jsonString = _sharedPrefs.getString(fromKey.value)?.trim() ?? "";
+    if (jsonString.isNotEmpty) {
+      try {
+        return json.decode(jsonString);
+      } catch (exception) {
+        "error in getJson function --> $exception".log();
+      }
     }
-    return <String, dynamic>{};
+    return null;
   }
 
   // bool isUserLoggedIn() =>

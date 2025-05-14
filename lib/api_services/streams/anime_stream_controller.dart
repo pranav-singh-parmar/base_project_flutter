@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import '../../constants_and_extenstions/app_constants.dart';
+import '../../constants_and_extenstions/flutter_toast_manager.dart';
+import '../../constants_and_extenstions/nonui_extensions.dart';
 import '../models/anime_list_response.dart';
+import '../repositories/anime_repository.dart';
+import '../repositories/repository_result.dart';
 import 'stream_base.dart';
-import '../../constants_and_extenstions/singleton.dart';
-import 'package:flutter/material.dart' show BuildContext;
-import '../../constants_and_extenstions/app_constants.dart'
-    show ApiEndPoints, ApiStatus, HttpMehod;
 
 class AnimesStreamController implements StreamBase {
   ApiStatus _animeAS = ApiStatus.notHitOnce;
@@ -16,11 +17,11 @@ class AnimesStreamController implements StreamBase {
 
   bool get fetchedAllData => _totalPage <= _currentPage;
 
-  void paginateWithIndex(BuildContext context, int index) {
+  void paginateWithIndex(int index) {
     if (_animeAS != ApiStatus.isBeingHit &&
         index == _currentLength - 1 &&
         !fetchedAllData) {
-      getAnimes(context, clearList: false);
+      getAnimes(clearList: false);
     }
   }
 
@@ -34,40 +35,59 @@ class AnimesStreamController implements StreamBase {
     _getAnimesSC.sink.add(_animeAS);
   }
 
-  Future<void> getAnimes(BuildContext context, {bool clearList = false}) async {
+  Future<void> getAnimes({bool clearList = false}) async {
     if (clearList) {
       _currentPage = 1;
     }
 
     _updateAnimeAS(ApiStatus.isBeingHit);
-    final uri = Singleton.instance.apiServices.getUri(
-        endPoint: ApiEndPoints.anime,
-        queryparameters: {
-          "page": _currentPage,
-          "size": "10",
-          "search": "Dragon Ball Z"
-        });
-    final json = await Singleton.instance.apiServices
-        .hitApi(context, HttpMehod.get, uri, extraHeaders: {
-      "X-RapidAPI-Key": "2b975442demsh14dd8bb5a692b60p17c702jsnc458dbd221ae",
-      "X-RapidAPI-Host": "anime-db.p.rapidapi.com"
-    }, whenInternotNotConnected: (() {
-      getAnimes(context, clearList: clearList);
-    }));
 
-    if (clearList) {
-      animes.clear();
-    }
-    _currentPage++;
+    final repository = AnimeRepository();
+    final result = await repository.getAnimeList(
+      search: "Dragon Ball Z",
+      page: _currentPage,
+    );
 
-    if (json != null) {
-      final animeResponse = AnimeListResponse.fromJson(json);
-      _totalPage = animeResponse.meta?.totalPage ?? 0;
-      animes.addAll(animeResponse.data ?? []);
-      _currentLength = animes.length;
-      _updateAnimeAS(ApiStatus.apiHit);
-    } else {
-      _updateAnimeAS(ApiStatus.apiHitWithError);
+    switch (result) {
+      case SuccessRepositoryResult<AnimeListResponse>(:final data):
+        "Success".log();
+
+        if (clearList) {
+          animes.clear();
+        }
+        _currentPage++;
+
+        _totalPage = data.meta?.totalPage ?? 0;
+        animes.addAll(data.data ?? []);
+        _currentLength = animes.length;
+        _updateAnimeAS(ApiStatus.apiHit);
+
+        break;
+      case InternetNotConnectedRepositoryResult():
+        "InternetNotConnectedRepositoryResult".log();
+        Future.delayed(
+          const Duration(seconds: 2),
+          () => getAnimes(clearList: clearList),
+        );
+
+        break;
+      case UnauthorisedRepositoryResult():
+        "UnauthorisedRepositoryResult".log();
+        _updateAnimeAS(ApiStatus.apiHitWithError);
+        break;
+      case ValidationFailedRepositoryResult(:final message):
+        "ValidationFailedRepositoryResult".log();
+        FlutterToastManager().showToast(withMessage: message);
+        _updateAnimeAS(ApiStatus.apiHitWithError);
+        break;
+      case CustomRepositoryResult<AnimeRespositoryResultEnum>(:final reason):
+        "$reason".log();
+        _updateAnimeAS(ApiStatus.apiHitWithError);
+        FlutterToastManager().showToast(withMessage: "$reason");
+      default:
+        //getAnimes(context, clearList: clearList);
+        _updateAnimeAS(ApiStatus.apiHitWithError);
+        break;
     }
   }
 

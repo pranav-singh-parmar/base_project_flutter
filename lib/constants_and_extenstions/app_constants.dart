@@ -16,7 +16,7 @@ enum ApiStatus { notHitOnce, isBeingHit, apiHit, apiHitWithError }
 
 class AppDomain {
   static const bool isHTTPS = true;
-  static const String baseURL = "https://anime-db.p.rapidapi.com";
+  static const String baseURL = "https://anime-db.p.rapidapi.com/";
 }
 
 class AppUrls {
@@ -25,13 +25,16 @@ class AppUrls {
   static const String privacyPolicy = "${AppDomain.baseURL}/privacypolicy";
 }
 
-class ApiEndPoints {
-  static const anime = "${AppUrls.apiMidPoint}anime";
-}
+enum SharedPrefsKeys {
+  fcmToken("fcm_token"),
+  authToken("auth_token"),
+  theme("theme"),
+  speedBeforeVPN("speed_test_model_without_vpn"),
+  speedAfterVPN("speed_test_model_with_vpn"),
+  purchaseDetails("purchase_details"),
+  userDetails("user_details"),
+  ;
 
-class AppColors {}
-
-class SharedPrefsKeys {
-  static const fcmToken = "fcmToken";
-  static const authToken = "authToken";
+  final String value;
+  const SharedPrefsKeys(this.value);
 }

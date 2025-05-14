@@ -1,7 +1,7 @@
-import 'package:base_project_flutter/screens/animes_list_screen.dart';
+import '../constants_and_extenstions/theme_controller.dart';
+import 'animes_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'characters_list_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -11,12 +11,13 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late Timer timer;
+  late Timer _timer;
+  final _themeController = ThemeController();
 
   @override
   void initState() {
     super.initState();
-    timer = Timer(const Duration(seconds: 3), () {
+    _timer = Timer(const Duration(seconds: 3), () {
       navigateUser();
     });
   }
@@ -24,13 +25,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Center(
-      child: Text("Splash Screen")
-    ));
+      body: Center(
+        child: Text(
+          "Splash Screen",
+          style: _themeController.bitterFont(
+            fontSize: FontSize.body,
+          ),
+        ),
+      ),
+    );
   }
 
   void navigateUser() async {
-    timer.cancel();
+    _timer.cancel();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const AnimesListScreen()),

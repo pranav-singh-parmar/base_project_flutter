@@ -1,10 +1,18 @@
-import 'package:base_project_flutter/screens/splash.dart';
 import 'package:flutter/material.dart';
-import '../constants_and_extenstions/singleton.dart';
 
-void main() {
+import 'constants_and_extenstions/shared_prefs.dart';
+import 'constants_and_extenstions/theme_controller.dart';
+import 'screens/splash.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final List<Future<dynamic>> list = [
+    SharedPrefs().initialiseSharePrefs(),
+    //Firebase.initializeApp(),
+  ];
+  await Future.wait(list);
+
   runApp(const MyApp());
-  Singleton.instance;
 }
 
 class MyApp extends StatelessWidget {
@@ -15,7 +23,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Base Project Flutter',
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: "Bitter"),
+      theme: ThemeController().getThemeData(),
+      darkTheme: ThemeController().getThemeData(),
       home: const SplashScreen(),
     );
   }
